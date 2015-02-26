@@ -241,5 +241,9 @@ while getopts ":t:b:p:d:co:h" opt; do
     esac
 done
 
+## uptdate $move if any of the above has changed
+## final destination for backups
+move="$backup""$prefix""$d"
+
 # call the main function; see above
 main
