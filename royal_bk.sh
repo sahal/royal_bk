@@ -44,9 +44,6 @@ prefix="$(/bin/hostname)""_"
 ## set date to yyyymmddhhmm (hhmm)
 d="$(date +%Y%m%d%I%M)"
 
-## final destination for backups
-#move="$backup""$prefix""$d"
-
 # chown the tarballs to a specific user/group afterwards
 # 1 - yes, any other number - no
 chown_or_naw="0"
@@ -80,7 +77,7 @@ EOF
 fi
 
 function main {
-#create $move directory and change into it
+#create "$backup""$prefix""$d" directory and change into it
 mkdir -p "$backup""$prefix""$d"
 cd "$backup""$prefix""$d"
 
@@ -152,10 +149,7 @@ $(do_exclude "$@") \
 echo "Started: ""$(date)" >> "$DIR"/log-file 2>&1
 
 # create tarball
-#eval tar --create --verbose --verbose --gzip --preserve-permissions --absolute-names $(do_exclude "$@") --file="\"""$move"/"$tarball_name""\"" '$file_or_dir' 2>&1 >> "$DIR"/log-file
-
 eval tar --create --verbose --verbose --gzip --preserve-permissions --absolute-names $(do_exclude "$@") --file="\"""$backup""$prefix""$d"/"$tarball_name""\"" '$file_or_dir' 2>&1 >> "$DIR"/log-file
-
 
 cat <<EOF | tee -a "$DIR"/log-file
 Finished: $(date)
@@ -253,10 +247,6 @@ while getopts ":t:b:p:d:co:h" opt; do
         ;;
     esac
 done
-
-## uptdate $move if any of the above has changed
-## final destination for backups
-#move="$backup""$prefix""$d"
 
 # call the main function; see above
 main
