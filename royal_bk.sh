@@ -51,7 +51,7 @@ move="$backup""$prefix""$d"
 # 1 - yes, any other number - no
 chown_or_naw="0"
 # chown the backups to a specific user
-chowner="sahal:sahal"
+chowner="root:root"
 
 # default exclude list (if not specified later) for tar
 # include trailling slash for directories
