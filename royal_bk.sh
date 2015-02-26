@@ -3,7 +3,7 @@
 # by Sahal Ansari (github@sahal.info)
 #
 # desc: create tarballs of files/dirs listed in $to_backup at current
-#       date $d and store in directory $move ("$backup""$prefix""$d")
+#       date $d and store in directory "$backup""$prefix""$d"
 # todo: * support adding optional tar parameters
 #       * add support for gpg
 #
@@ -45,7 +45,7 @@ prefix="$(/bin/hostname)""_"
 d="$(date +%Y%m%d%I%M)"
 
 ## final destination for backups
-move="$backup""$prefix""$d"
+#move="$backup""$prefix""$d"
 
 # chown the tarballs to a specific user/group afterwards
 # 1 - yes, any other number - no
@@ -79,11 +79,10 @@ home.tar.gz;/home/;/home/kropotkin/;/home/aspies/;/home/sacco/;/home/bakunin/
 EOF
 fi
 
-
 function main {
 #create $move directory and change into it
-mkdir -p "$move"
-cd "$move"
+mkdir -p "$backup""$prefix""$d"
+cd "$backup""$prefix""$d"
 
 files_to_backup=( $(grep -v "^#" < "$to_backup" ) )
 
@@ -96,8 +95,8 @@ do
 done
 
 if [ "$chown_or_naw" -eq "1" ]; then
-    chown -R "$chowner" "$move"
-    chmod og= "$move"
+    chown -R "$chowner" "$backup""$prefix""$d"
+    chmod og= "$backup""$prefix""$d"
 fi
 }
 
@@ -149,11 +148,14 @@ echo tar \
 --preserve-permissions \
 --absolute-names \
 $(do_exclude "$@") \
---file="\"""$move"/"$tarball_name""\"" "$file_or_dir" | tee -a "$DIR"/log-file
+--file="\"""$backup""$prefix""$d"/"$tarball_name""\"" "$file_or_dir" | tee -a "$DIR"/log-file
 echo "Started: ""$(date)" >> "$DIR"/log-file 2>&1
 
 # create tarball
-eval tar --create --verbose --verbose --gzip --preserve-permissions --absolute-names $(do_exclude "$@") --file="\"""$move"/"$tarball_name""\"" '$file_or_dir' 2>&1 >> "$DIR"/log-file
+#eval tar --create --verbose --verbose --gzip --preserve-permissions --absolute-names $(do_exclude "$@") --file="\"""$move"/"$tarball_name""\"" '$file_or_dir' 2>&1 >> "$DIR"/log-file
+
+eval tar --create --verbose --verbose --gzip --preserve-permissions --absolute-names $(do_exclude "$@") --file="\"""$backup""$prefix""$d"/"$tarball_name""\"" '$file_or_dir' 2>&1 >> "$DIR"/log-file
+
 
 cat <<EOF | tee -a "$DIR"/log-file
 Finished: $(date)
@@ -254,7 +256,7 @@ done
 
 ## uptdate $move if any of the above has changed
 ## final destination for backups
-move="$backup""$prefix""$d"
+#move="$backup""$prefix""$d"
 
 # call the main function; see above
 main
