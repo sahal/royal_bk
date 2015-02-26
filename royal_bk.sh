@@ -97,6 +97,7 @@ done
 
 if [ "$chown_or_naw" -eq "1" ]; then
     chown -R "$chowner" "$move"
+    chmod og= "$move"
 fi
 }
 
