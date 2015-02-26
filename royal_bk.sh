@@ -38,10 +38,10 @@ backup="/tmp/backup/"
 prefix="$(/bin/hostname)""_"
 #prefix="iLL_"
 
-## DATE FORMAT set as $d
-## set date to yyyymmdd
+## DATE FORMAT - use -d to specify at run time
+## set date to yyyymmdd (ymd)
 #d="$(date +%Y%m%d)"
-## set date to yyyymmddhhmm
+## set date to yyyymmddhhmm (hhmm)
 d="$(date +%Y%m%d%I%M)"
 
 ## final destination for backups
@@ -172,7 +172,9 @@ Creates backups for specified files/dirs in \$to_backup, stores in \$backup/\$pr
     -t full path to csv of dirs/files to backup (Default: \$DIR/to-backup)
     -b full path to backup directory (Default: /tmp/backup)
     -p specify a prefix for the current backup directory (Default: hostname_)
-    -d specify a date format (Default: %Y%m%d%I%M i.e. yyyymmddhhmm)
+    -d specify a date format (Default: hhmm) 
+                             hhmm=%Y%m%d%I%M i.e. yyyymmddhhmm
+                             ymd=%Y%m%d i.e. yyyymmdd
     -c if set then backup directory with be chowned to user:grp (optionally specified in -o)
     -o specify a chown user:grp (Default: root:root) must use with -c
     -h print this help
@@ -201,10 +203,16 @@ while getopts ":t:b:p:d:co:h" opt; do
             prefix="${OPTARG:-}"
         ;;
 
-        d) #todo: fix the fact that this currently accepts invalid date formats
+        d) 
             echo "-d was triggered, Parameter: ""${OPTARG:-}" >&2
-            dformat="${OPTARG:-}"
-            d="$(date +$dformat)"
+            if [ "${OPTARG:-}" == "ymd" ]; then
+                d="$(date +%Y%m%d)"
+            elif [ "${OPTARG:-}" == "hhmm" ]; then
+                d="$(date +%Y%m%d%I%M)"
+            else
+                echo "ERROR: invalid date format."
+                exit 1
+            fi
         ;;
 
         c) 
