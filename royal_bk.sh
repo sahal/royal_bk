@@ -6,6 +6,7 @@
 #       date $d and store in directory "$backup""$prefix""$d"
 # todo: * support adding optional tar parameters
 #       * add support for gpg
+#       * add support for other archive formats
 #
 # Copyright (c) 2015 Sahal Ansari github@sahal.info
 #
@@ -52,7 +53,7 @@ chowner="root:root"
 
 # default exclude list (if not specified later) for tar
 # include trailling slash for directories
-default_exclude=( "/mnt/" "/proc/" "/run/" "/media/" )
+default_exclude=( "/mnt/" "/proc/" "/run/" "/media/" "$DIR" "$backup" )
 
 # $to_backup is a csv (w/ a semicolon ";" delimter) of files/dirs to
 #            backup in the following format
@@ -102,8 +103,8 @@ function do_exclude {
 
 local excluded_files=( "${@}" )
 
-# if there are no explicitly excluded files we exclude from the default_exclude array
-if [ "${#excluded_files[@]:-}" -ne "0" ]; then
+# exclude BOTH fro mthe excluded_files array AND the default_exclude array
+#if [ "${#excluded_files[@]:-}" -ne "0" ]; then
     for (( i=0; i<"${#excluded_files[@]:-}"; i++))
     do
         if [ "${excluded_files[i]: -1}" = "/" ]; then
@@ -112,7 +113,7 @@ if [ "${#excluded_files[@]:-}" -ne "0" ]; then
             echo -ne "--exclude=\"""${excluded_files[i]}""\" "
         fi
     done
-else
+#else
     for (( i=0; i<"${#default_exclude[@]:-}"; i++))
     do
         if [ "${default_exclude[i]: -1}" = "/" ]; then
@@ -121,7 +122,7 @@ else
             echo -ne "--exclude=\"""${default_exclude[i]}""\" "
         fi
     done
-fi
+#fi
 
 }
 
