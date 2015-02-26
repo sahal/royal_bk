@@ -182,6 +182,8 @@ EOF
 
 }
 
+echo "Run Line: ""${0##*/:-}" $@ >> "$DIR"/log-file 2>&1
+
 while getopts ":t:b:p:d:co:h" opt; do
     case "${opt:-}" in
         t) 
@@ -247,4 +249,4 @@ done
 move="$backup""$prefix""$d"
 
 # call the main function; see above
-main
+#main
