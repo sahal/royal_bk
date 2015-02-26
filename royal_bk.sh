@@ -249,4 +249,4 @@ done
 move="$backup""$prefix""$d"
 
 # call the main function; see above
-#main
+main
