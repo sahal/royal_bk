@@ -33,11 +33,11 @@ set -e
 # directory where script is located
 DIR="$( cd "$( dirname "$0" )" && pwd )"
 
-source "$DIR"/config.cfg
+source "$DIR"/config/config.cfg
 
 function main {
-# print the run line to log-file
-echo "Run Line: ""${0##*/:-}" $@ >> "$DIR"/log-file 2>&1
+# print the run line to log
+echo "Run Line: ""${0##*/:-}" $@ >> "$log_file" 2>&1
 
 do_update_vars
 
@@ -67,25 +67,23 @@ function do_exclude {
 local excluded_files=( "${@}" )
 
 # exclude BOTH from the excluded_files array AND the default_exclude array
-#if [ "${#excluded_files[@]:-}" -ne "0" ]; then
-    for (( i=0; i<"${#excluded_files[@]:-}"; i++))
-    do
-        if [ "${excluded_files[i]: -1}" = "/" ]; then
-            echo -ne "--exclude=\"""${excluded_files[i]}""*\" "
-        else
-            echo -ne "--exclude=\"""${excluded_files[i]}""\" "
-        fi
-    done
-#else
-    for (( i=0; i<"${#default_exclude[@]:-}"; i++))
-    do
-        if [ "${default_exclude[i]: -1}" = "/" ]; then
-            echo -ne "--exclude=\"""${default_exclude[i]}""*\" "
-        else
-            echo -ne "--exclude=\"""${default_exclude[i]}""\" "
-        fi
-    done
-#fi
+for (( i=0; i<"${#excluded_files[@]:-}"; i++))
+do
+    if [ "${excluded_files[i]: -1}" = "/" ]; then
+        echo -ne "--exclude=\"""${excluded_files[i]}""*\" "
+    else
+        echo -ne "--exclude=\"""${excluded_files[i]}""\" "
+    fi
+done
+
+for (( i=0; i<"${#default_exclude[@]:-}"; i++))
+do
+    if [ "${default_exclude[i]: -1}" = "/" ]; then
+        echo -ne "--exclude=\"""${default_exclude[i]}""*\" "
+    else
+        echo -ne "--exclude=\"""${default_exclude[i]}""\" "
+    fi
+done
 
 }
 
@@ -102,20 +100,20 @@ local file_or_dir="${1}"
 shift
 
 # preview
-echo -ne "Now running the following: " | tee -a "$DIR"/log-file
+echo -ne "Now running the following: " | tee -a "$log_file"
 echo tar \
 --create \
 --gzip \
 --preserve-permissions \
 --absolute-names \
 $(do_exclude "$@") \
---file="\"""$backup""$prefix""$d"/"$tarball_name""\"" "$file_or_dir" | tee -a "$DIR"/log-file
-echo "Started: ""$(date)" >> "$DIR"/log-file 2>&1
+--file="\"""$backup""$prefix""$d"/"$tarball_name""\"" "$file_or_dir" | tee -a "$log_file"
+echo "Started: ""$(date)" >> "$log_file" 2>&1
 
 # create tarball
-eval tar --create --verbose --verbose --gzip --preserve-permissions --absolute-names $(do_exclude "$@") --file="\"""$backup""$prefix""$d"/"$tarball_name""\"" '$file_or_dir' 2>&1 >> "$DIR"/log-file
+eval tar --create --verbose --verbose --gzip --preserve-permissions --absolute-names $(do_exclude "$@") --file="\"""$backup""$prefix""$d"/"$tarball_name""\"" '$file_or_dir' 2>&1 >> "$log_file"
 
-cat <<EOF | tee -a "$DIR"/log-file
+cat <<EOF | tee -a "$log_file"
 Finished: $(date)
 
 EOF
@@ -129,8 +127,8 @@ cat <<EOF
 Usage: ${0##*/:-} [OPTION...]
 Creates backups for specified files/dirs in \$to_backup, stores in \$backup/\$prefix_\$d, where \$d is the date format
 
-    -t full path to csv of dirs/files to backup (Default: \$DIR/to-backup)
-    -b full path to backup directory (Default: /tmp/backup)
+    -t full path to csv of dirs/files to backup (Default: \$DIR/config/to-backup)
+    -b full path to backup directory (Default: /tmp/backup/)
     -p specify a prefix for the current backup directory (Default: hostname_)
     -d specify a date format (Default: hhmm) 
                              hhmm=%Y%m%d%I%M i.e. yyyymmddhhmm

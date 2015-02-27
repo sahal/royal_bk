@@ -1,7 +1,7 @@
 #!/bin/bash
 # ./trimbackups.sh [prompt]
 # desc: Use this for trimming backup directories stored as $prefix_yyyymmdd[hhmm] in $backup dir
-# todo: implement getopts :x
+# todo: 
 #
 # Copyright (c) 2015 Sahal Ansari github@sahal.info
 #
@@ -26,48 +26,50 @@
 # directory where script is located
 DIR="$( cd "$( dirname "$0" )" && pwd )"
 
-source "$DIR"/config.cfg
+source "$DIR"/config/config.cfg
 
 function main {
 
 # overwrite todelete each time this is run for [insert reason here]
 echo > "$to_delete"
 
+do_update_vars
+
 do_print_mark
 
-}
-
-function do_prompt {
-
-# print hr
-echo "*************************************************************"
-
-for (( i=0; i<"${#dirnames[@]:-}"; i++))
-do
-    do_chknprint_dirname "${dirnames[i]:-}"
-    ask_delete "${dirnames[i]:-}"
-done
+do_write_or_prompt
 
 }
 
-function do_write {
+function do_write_or_prompt {
 
-# check each item in array $deletelist to see if it exists in file $todelete
-# if not, add it to the file
-for (( i=0; i<"${#deletelist[@]:-}"; i++))
-do
+if [ "$prompt_or_naw" -eq "1" ]; then
 
-    grep "${deletelist[i]:-}" "$to_delete" > /dev/null 2>&1
-    if [ "$?" -eq "0" ]; then
-        continue
-    fi
+    # print hr
+    echo "*************************************************************"
 
-    echo "${deletelist[i]:-}" >> "$to_delete" 2>&1
+    for (( i=0; i<"${#dirnames[@]:-}"; i++))
+    do
+        do_chknprint_dirname "${dirnames[i]:-}"
+        ask_delete "${dirnames[i]:-}"
+    done
 
-done
+elif [ "$prompt_or_naw" -eq "0" ]; then
+    # check each item in array $deletelist to see if it exists in file $todelete
+    # if not, add it to the file
+    for (( i=0; i<"${#deletelist[@]:-}"; i++))
+    do
 
+        grep "${deletelist[i]:-}" "$to_delete" > /dev/null 2>&1
+        if [ "$?" -eq "0" ]; then
+            continue
+        fi
+
+        echo "${deletelist[i]:-}" >> "$to_delete" 2>&1
+
+    done
+fi
 }
-
 
 function ask_delete { # this is used by the prompt function below
 echo " -- delete?"
@@ -180,12 +182,68 @@ done
 
 }
 
+function show_help {
+cat <<EOF
+Usage: ${0##*/:-} [OPTION...]
+Prints a list of directories with \$prefix in \$backup that should be deleted based on rotation schedule.
+
+    -e full path to file that stores a list of directories to delete (Default: \$DIR/config/to-delete)
+    -b full path to backup directory (Default: /tmp/backup/)
+    -p specify a prefix for the current backup directory (Default: hostname_)
+    -a ask (or prompt) to append \$to_delete
+    -h print this help
+
+
+EOF
+
+}
+
+while getopts ":e:b:p:d:ah" opt; do
+    case "${opt:-}" in
+        e)
+            echo "-e was triggered, Parameter: ""${OPTARG:-}" >&2
+            to_delete="${OPTARG:-}"
+        ;;
+
+        b) 
+            echo "-b was triggered, Parameter: ""${OPTARG:-}" >&2
+            if [ "${OPTARG: -1}" != "/" ]; then
+                echo "ERROR: Please specify a directory with a trailing slash!"
+                exit 1
+            else 
+                backup="${OPTARG:-}"
+            fi
+        ;;
+
+        p) 
+            echo "-p was triggered, Parameter: ""${OPTARG:-}" >&2
+            prefix="${OPTARG:-}"
+        ;;
+
+        a) 
+            echo "-a was triggered" >&2
+            prompt_or_naw="1"
+        ;;
+        
+        h) 
+            show_help
+            exit 0
+        ;;
+
+        \?) # any other single character
+            echo "Invalid option: -""${OPTARG:-}" >&2
+            echo
+            show_help
+            exit 1
+        ;;
+
+        :)
+            echo "Option -""${OPTARG:-}"" requires an argument." >&2
+            echo
+            show_help
+            exit 1
+        ;;
+    esac
+done
+
 main
-
-if [[ "$1" == "prompt" ]]; then
-    do_prompt
-else
-    do_write
-fi
-
-
