@@ -21,18 +21,22 @@ This comes with two scripts royal_bk.sh and trim_bk.sh.
 
 **trim_bk.sh**
 
-    ./trim_bk.sh [prompt]
-    Saves a list of outdated backups to a file "to-delete" in the $backup directory
+    ./trim_bk.sh -h
+    Usage: ./trim_bk.sh [OPTION...]
+    Prints a list of directories with $prefix in $backup that should be deleted based on rotation schedule.
 
+        -e full path to file that stores a list of directories to delete (Default: $DIR/config/to-delete)
+        -b full path to backup directory (Default: /tmp/backup/)
+        -p specify a prefix for the current backup directory (Default: hostname_)
+        -a ask (or prompt) to append $to_delete
+        -h print this help
 
 Todo
 ----
 
-* unify the configuration of both scripts.
 * royal_bk.sh
   * gpg encryption of the tarballs
   * specify additional tar parameters
   * incremental backups
 * trim_bk.sh
-  * add getopts support
 * better documentation
