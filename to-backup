@@ -1,0 +1,6 @@
+# backup csv with semicolon delimters
+# home directories
+home.tar.gz;/home/;/home/kropotkin/;/home/aspies/;/home/sacco/;/home/bakunin/
+# root backups
+#root_home.tar.gz;/root/
+#etc.tar.gz;/etc/

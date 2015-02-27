@@ -23,84 +23,107 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-backup="/tmp/backup/"
-prefix="$(/bin/hostname)""_"
-#$offset is the number of chars in string $prefix plus 2 for "./", which comes from find
-# i use this later to determine  year, month, day, [hour, minute] quickly using bash parameter expansion
-offset=$(( ${#prefix} + 2 ))
+# directory where script is located
+DIR="$( cd "$( dirname "$0" )" && pwd )"
 
-# save filenames to delete here
-todelete="$backup/to-delete"
+source "$DIR"/config.cfg
+
+function main {
 
 # overwrite todelete each time this is run for [insert reason here]
-echo > "$todelete"
+echo > "$to_delete"
 
-#tmp array to store items to delete (will be written to file $todelete later)
-deletelist=()
+do_print_mark
 
-# bash supports associative arrays
-# this one converts month number to month name (in Mmm format)
-# https://stackoverflow.com/questions/1494178/how-to-define-hash-tables-in-bash
-declare -A months
-months=( ["01"]="Jan" ["02"]="Feb" ["03"]="Mar" ["04"]="Apr" ["05"]="May" ["06"]="Jun" ["07"]="Jul" ["08"]="Aug" ["09"]="Sep" ["10"]="Oct" ["11"]="Nov" ["12"]="Dec" )
+if [[ "$1" == "prompt" ]]; then
 
-# current month, day, year
-cyear="$(date +%Y)"
-cmonth="$(date +%m)"
-cweek="$(date +%U)"
-cday="$(date +%d)"
+    # print hr
+    echo "*************************************************************"
 
-# finds dirs matching $prefix_yyyymmdd[hhmm] (e.g. www_201502130922, sf-slowfruit_20150213) in $backup dir
-cd "$backup"
-dirnames=( $(find . -regextype grep -regex ".*/$prefix[0-9]\{8,12\}" -type d -print | sort -r) )
+    for (( i=0; i<"${#dirnames[@]:-}"; i++))
+    do
+
+        do_chknprint_dirname "${dirnames[i]:-}"
+
+        ask_delete "${dirnames[i]:-}"
+
+    done
+
+else
+
+    # check each item in array $deletelist to see if it exists in file $todelete
+    # if not, add it to the file
+    for (( i=0; i<"${#deletelist[@]:-}"; i++))
+    do
+
+        grep "${deletelist[i]:-}" "$to_delete" > /dev/null 2>&1
+        if [ "$?" -eq "0" ]; then
+            continue
+        fi
+
+        echo "${deletelist[i]:-}" >> "$to_delete" 2>&1
+
+    done
+
+fi
+
+}
 
 # define functions
 function ask_delete { # this is used by the prompt function below
-    echo " -- delete?"
-    select yn in "Yes" "No"; do
-    case "$yn" in
-        Yes ) echo "$1" >> "$todelete"; break;;
-        No ) break;;
-    esac
-    done
+echo " -- delete?"
+select yn in "Yes" "No"; do
+case "$yn" in
+    Yes ) echo "$1" >> "$to_delete"; break;;
+    No ) break;;
+esac
+done
 }
 
-function chknprint {
+function do_chknprint_dirname {
 
-    #checks if the date is already listed in $todelete, if so skips it
+#checks if the date is already listed in $to_delete, if so skips it
+grep "${1:-}" "$to_delete" > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+    continue
+fi
 
-    grep "${1:-}" "$todelete" > /dev/null 2>&1
-    if [ "$?" -eq "0" ]; then
-        continue
-    fi
+# print the date in a pretty format
+# i've selected Mmm dd, yyyy [hh:mm] b/c 'MERICA
+year="${1:$offset:4}"
+month="${1:$offset+4:2}"
+day="${1:$offset+6:2}"
+week="$(date --date=$year$month$day +%U)"
 
-    # print the date in a pretty format
-    # i've selected Mmm dd, yyyy [hh:mm] b/c 'MERICA
-    year="${1:$offset:4}"
-    month="${1:$offset+4:2}"
-    day="${1:$offset+6:2}"
-    week="$(date --date=$year$month$day +%U)"
+echo -ne "${1:-}"":  "
+echo -ne "${months["$month"]}"" ""$day"", ""$year"
 
-    echo -ne "${1:-}"":  "
-    echo -ne "${months["$month"]}"" ""$day"", ""$year"
-
-    # check if there are 8 or 12 digits after prefix (hour+minute was set)
-    date_length=$(( ${#1} - $offset ))
-    if [ "$date_length" = "12" ]; then
-        hour="${1:$offset+8:2}"
-        minute="${1:$offset+10:2}"
-        echo -ne " ""$hour"":""$minute"
-    fi
+# check if there are 8 or 12 digits after prefix (hour+minute was set)
+date_length=$(( ${#1} - $offset ))
+if [ "$date_length" = "12" ]; then
+    hour="${1:$offset+8:2}"
+    minute="${1:$offset+10:2}"
+    echo -ne " ""$hour"":""$minute"
+fi
 
 }
 
+function do_print_mark {
 # print a list of directories in human readable format
-# also check for multipe entries per day (if current month) or multiple entries per month (if otherwise)
-# todo: if date is 365 days in the past, set to delete
+# If a directory is followed by a mark (e.g., *, **, ., x) then it is marked for deletion.
+#    older than 365 days (with an ?x?)
+#    from the current month
+#        and from current week
+#            but not the most recent daily backup (?*?)
+#        and from the current week
+#            but not the most recent backup for that week (?.?)
+#    not from the current month
+#        but not the most recent backup for that month (?**?)
+
 for (( i=0; i<"${#dirnames[@]:-}"; i++))
 do
 
-    chknprint "${dirnames[i]:-}"
+    do_chknprint_dirname "${dirnames[i]:-}"
 
     daysago="$((( $(date +%s) - $(date -d $year$month$day +%s) ) / 86400 ))"
     if [ "$daysago" -gt "365" ]; then
@@ -156,34 +179,6 @@ do
     fi
 done
 
-if [[ "$1" == "prompt" ]]; then
+}
 
-    # print hr
-    echo "*************************************************************"
-
-    for (( i=0; i<"${#dirnames[@]:-}"; i++))
-    do
-
-        chknprint "${dirnames[i]:-}"
-
-        ask_delete "${dirnames[i]:-}"
-
-    done
-
-else
-
-    # check each item in array $deletelist to see if it exists in file $todelete
-    # if not, add it to the file
-    for (( i=0; i<"${#deletelist[@]:-}"; i++))
-    do
-
-        grep "${deletelist[i]:-}" "$todelete" > /dev/null 2>&1
-        if [ "$?" -eq "0" ]; then
-            continue
-        fi
-
-        echo "${deletelist[i]:-}" >> "$todelete" 2>&1
-
-    done
-
-fi
+main

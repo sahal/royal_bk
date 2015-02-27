@@ -33,50 +33,14 @@ set -e
 # directory where script is located
 DIR="$( cd "$( dirname "$0" )" && pwd )"
 
-# backup directory and prefix
-# include trailing slash
-backup="/tmp/backup/"
-prefix="$(/bin/hostname)""_"
-
-## DATE FORMAT - use -d to specify at run time
-## set date to yyyymmdd (ymd)
-#d="$(date +%Y%m%d)"
-## set date to yyyymmddhhmm (hhmm)
-d="$(date +%Y%m%d%I%M)"
-
-# chown the tarballs to a specific user/group afterwards
-# 1 - yes, any other number - no
-chown_or_naw="0"
-# chown the backups to a specific user
-chowner="root:root"
-
-# default exclude list for tar
-# include trailling slash for directories
-default_exclude=( "/mnt/" "/proc/" "/run/" "/media/" "$DIR""/" )
-
-# $to_backup is a csv (w/ a semicolon ";" delimter) of files/dirs to
-#            backup in the following format
-# backup.tar.gz;full-path-to_file/dir_to-backup;exclude1(optional);excludeN(optional)
-# NOTE: there are NO spaces before/after the ";",
-#       lines starting with a hash "#" are ignored,
-#       for dirs to backup/exclude: include the trailing slash,
-#       do not use asterisks to specify directories
-# full path to $to_backup
-to_backup="$DIR""/to-backup"
-
-# or create the file here
-if [ ! -e "$to_backup" ]; then
-cat > "$to_backup" <<EOF
-# backup csv with semicolon delimters
-# home directories
-home.tar.gz;/home/;/home/kropotkin/;/home/aspies/;/home/sacco/;/home/bakunin/
-# root backups
-#root_home.tar.gz;/root/
-#etc.tar.gz;/etc/
-EOF
-fi
+source "$DIR"/config.cfg
 
 function main {
+# print the run line to log-file
+echo "Run Line: ""${0##*/:-}" $@ >> "$DIR"/log-file 2>&1
+
+do_update_vars
+
 #create "$backup""$prefix""$d" directory and change into it
 mkdir -p "$backup""$prefix""$d"
 cd "$backup""$prefix""$d"
@@ -180,8 +144,6 @@ EOF
 
 }
 
-echo "Run Line: ""${0##*/:-}" $@ >> "$DIR"/log-file 2>&1
-
 while getopts ":t:b:p:d:co:h" opt; do
     case "${opt:-}" in
         t) 
@@ -257,9 +219,6 @@ while getopts ":t:b:p:d:co:h" opt; do
         ;;
     esac
 done
-
-# update variables
-default_exclude+=("$backup")
 
 # call the main function; see above
 main
