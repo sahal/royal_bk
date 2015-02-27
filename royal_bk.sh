@@ -120,8 +120,6 @@ EOF
 
 }
 
-# $to_backup,$backup,$prefix,$chown_or_naw,$chowner 
-
 function show_help {
 cat <<EOF
 Usage: ${0##*/:-} [OPTION...]
