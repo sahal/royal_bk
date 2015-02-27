@@ -34,7 +34,9 @@ function main {
 echo > "$to_delete"
 
 if [ ! -d "$backup" ]; then
-    echo "NOTICE: $backup does not exist as a directory."
+    echo -ne "NOTICE: $backup does not exist as a directory.\n\n"
+    show_help
+    exit 1
 fi
 
 do_update_vars
