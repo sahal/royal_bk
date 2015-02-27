@@ -35,41 +35,40 @@ echo > "$to_delete"
 
 do_print_mark
 
-if [[ "$1" == "prompt" ]]; then
+}
 
-    # print hr
-    echo "*************************************************************"
+function do_prompt {
 
-    for (( i=0; i<"${#dirnames[@]:-}"; i++))
-    do
+# print hr
+echo "*************************************************************"
 
-        do_chknprint_dirname "${dirnames[i]:-}"
-
-        ask_delete "${dirnames[i]:-}"
-
-    done
-
-else
-
-    # check each item in array $deletelist to see if it exists in file $todelete
-    # if not, add it to the file
-    for (( i=0; i<"${#deletelist[@]:-}"; i++))
-    do
-
-        grep "${deletelist[i]:-}" "$to_delete" > /dev/null 2>&1
-        if [ "$?" -eq "0" ]; then
-            continue
-        fi
-
-        echo "${deletelist[i]:-}" >> "$to_delete" 2>&1
-
-    done
-
-fi
+for (( i=0; i<"${#dirnames[@]:-}"; i++))
+do
+    do_chknprint_dirname "${dirnames[i]:-}"
+    ask_delete "${dirnames[i]:-}"
+done
 
 }
 
-# define functions
+function do_write {
+
+# check each item in array $deletelist to see if it exists in file $todelete
+# if not, add it to the file
+for (( i=0; i<"${#deletelist[@]:-}"; i++))
+do
+
+    grep "${deletelist[i]:-}" "$to_delete" > /dev/null 2>&1
+    if [ "$?" -eq "0" ]; then
+        continue
+    fi
+
+    echo "${deletelist[i]:-}" >> "$to_delete" 2>&1
+
+done
+
+}
+
+
 function ask_delete { # this is used by the prompt function below
 echo " -- delete?"
 select yn in "Yes" "No"; do
@@ -157,7 +156,7 @@ do
                         else
                             echo
                         fi
-                
+
                     else
                         echo " ."
                         deletelist+=("${dirnames[i]:-}")
@@ -182,3 +181,11 @@ done
 }
 
 main
+
+if [[ "$1" == "prompt" ]]; then
+    do_prompt
+else
+    do_write
+fi
+
+
