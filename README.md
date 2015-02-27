@@ -7,14 +7,15 @@ This comes with two scripts royal_bk.sh and trim_bk.sh.
 
 **royal_bk.sh**
 
-    ./royal_bk -h
     Usage: ./royal_bk.sh [OPTION...]
     Creates backups for specified files/dirs in $to_backup, stores in $backup/$prefix_$d, where $d is the date format
 
-        -t full path to csv of dirs/files to backup (Default: $DIR/to-backup)
-        -b full path to backup directory (Default: /tmp/backup)
+        -t full path to csv of dirs/files to backup (Default: $DIR/config/to-backup)
+        -b full path to backup directory (Default: /tmp/backup/)
         -p specify a prefix for the current backup directory (Default: hostname_)
-        -d specify a date format (Default: %Y%m%d%I%M i.e. yyyymmddhhmm)
+        -d specify a date format (Default: hhmm) 
+                                 hhmm=%Y%m%d%I%M i.e. yyyymmddhhmm
+                                 ymd=%Y%m%d i.e. yyyymmdd
         -c if set then backup directory with be chowned to user:grp (optionally specified in -o)
         -o specify a chown user:grp (Default: root:root) must use with -c
         -h print this help
