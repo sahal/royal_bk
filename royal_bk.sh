@@ -53,7 +53,7 @@ chowner="root:root"
 
 # default exclude list (if not specified later) for tar
 # include trailling slash for directories
-default_exclude=( "/mnt/" "/proc/" "/run/" "/media/" "$DIR" "$backup" )
+default_exclude=( "/mnt/" "/proc/" "/run/" "/media/" "$DIR""/" )
 
 # $to_backup is a csv (w/ a semicolon ";" delimter) of files/dirs to
 #            backup in the following format
@@ -192,7 +192,12 @@ while getopts ":t:b:p:d:co:h" opt; do
 
         b) 
             echo "-b was triggered, Parameter: ""${OPTARG:-}" >&2
-            backup="${OPTARG:-}"
+            if [ "${OPTARG: -1}" != "/" ]; then
+                echo "ERROR: Please specify a directory with a trailing slash!"
+                exit 1
+            else 
+                backup="${OPTARG:-}"
+            fi
         ;;
 
         p) 
@@ -248,6 +253,9 @@ while getopts ":t:b:p:d:co:h" opt; do
         ;;
     esac
 done
+
+# update variables
+default_exclude+="$backup"
 
 # call the main function; see above
 main
