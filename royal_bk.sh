@@ -37,7 +37,6 @@ DIR="$( cd "$( dirname "$0" )" && pwd )"
 # include trailing slash
 backup="/tmp/backup/"
 prefix="$(/bin/hostname)""_"
-#prefix="iLL_"
 
 ## DATE FORMAT - use -d to specify at run time
 ## set date to yyyymmdd (ymd)
@@ -51,7 +50,7 @@ chown_or_naw="0"
 # chown the backups to a specific user
 chowner="root:root"
 
-# default exclude list (if not specified later) for tar
+# default exclude list for tar
 # include trailling slash for directories
 default_exclude=( "/mnt/" "/proc/" "/run/" "/media/" "$DIR""/" )
 
@@ -103,7 +102,7 @@ function do_exclude {
 
 local excluded_files=( "${@}" )
 
-# exclude BOTH fro mthe excluded_files array AND the default_exclude array
+# exclude BOTH from the excluded_files array AND the default_exclude array
 #if [ "${#excluded_files[@]:-}" -ne "0" ]; then
     for (( i=0; i<"${#excluded_files[@]:-}"; i++))
     do
@@ -187,7 +186,12 @@ while getopts ":t:b:p:d:co:h" opt; do
     case "${opt:-}" in
         t) 
             echo "-t was triggered, Parameter: ""${OPTARG:-}" >&2
-            to_backup="${OPTARG:-}"
+            if [ -e "${OPTARG:-}" ]; then
+                to_backup="${OPTARG:-}"
+            else
+                echo "ERROR: $to_backup does not exist!"
+                exit 1
+            fi
         ;;
 
         b) 
