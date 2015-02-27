@@ -255,7 +255,7 @@ while getopts ":t:b:p:d:co:h" opt; do
 done
 
 # update variables
-default_exclude+="$backup"
+default_exclude+=("$backup")
 
 # call the main function; see above
 main
