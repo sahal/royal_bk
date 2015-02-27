@@ -33,6 +33,10 @@ function main {
 # overwrite todelete each time this is run for [insert reason here]
 echo > "$to_delete"
 
+if [ ! -d "$backup" ]; then
+    echo "NOTICE: $backup does not exist as a directory."
+fi
+
 do_update_vars
 
 do_print_mark
