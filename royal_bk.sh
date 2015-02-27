@@ -117,7 +117,7 @@ local excluded_files=( "${@}" )
     for (( i=0; i<"${#default_exclude[@]:-}"; i++))
     do
         if [ "${default_exclude[i]: -1}" = "/" ]; then
-            echo -ne "--exclude=\"" "${default_exclude[i]}""*\" "
+            echo -ne "--exclude=\"""${default_exclude[i]}""*\" "
         else
             echo -ne "--exclude=\"""${default_exclude[i]}""\" "
         fi
