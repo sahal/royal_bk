@@ -217,4 +217,4 @@ while getopts ":t:b:p:d:co:h" opt; do
 done
 
 # call the main function; see above
-main
+main $@
